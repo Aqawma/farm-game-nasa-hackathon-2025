@@ -10,7 +10,7 @@ def giveDataCSV(tuple1: (float, float), tuple2: (float, float), tuple3: (float, 
                 outputPath: str):
     lat, lon = returnMidPoint(tuple1, tuple2, tuple3, tuple4)[0], returnMidPoint(tuple1, tuple2, tuple3, tuple4)[1]
     end_date = datetime(2025, 9, 28)
-    start_date = end_date - timedelta(days=28)      # 7 days ago
+    start_date = end_date - timedelta(days=3650/2)      # 7 days ago
 
     start = int(start_date.strftime("%Y%m%d"))
     end = int(end_date.strftime("%Y%m%d"))
@@ -56,7 +56,9 @@ def giveDataCSV(tuple1: (float, float), tuple2: (float, float), tuple3: (float, 
 
                     formatted_date = f"{date[:4]}-{date[4:6]}-{date[6:8]}"
 
-                    writer.writerow([formatted_date, f"{temp:.1f}", f"{humidity:.1f}", f"{solar:.2f}", f"{precip:.2f}"])
+                    if date[4:6] == "05" or date[4:6] == "06" or date[4:6] == "07" or date[4:6] =="08":
+                        writer.writerow([formatted_date, f"{temp:.1f}", f"{humidity:.1f}", f"{solar:.2f}", f"{precip:.2f}"])
+
         else:
             print("Unexpected response structure:")
             print(data)
@@ -67,3 +69,7 @@ def giveDataCSV(tuple1: (float, float), tuple2: (float, float), tuple3: (float, 
         print(f"Failed to parse JSON response: {e}")
     except Exception as e:
         print(f"Unexpected error: {e}")
+
+
+tuple1, tuple2, tuple3, tuple4 = (41.5896,93.6164), (41.5896,93.6164), (41.5896,93.6164), (41.5896,93.6164)
+giveDataCSV(tuple1, tuple2, tuple3, tuple4, "/Users/max/PycharmProjects/farm-game-nasa-hackathon-2025")
