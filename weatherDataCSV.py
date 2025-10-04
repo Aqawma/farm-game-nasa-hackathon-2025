@@ -68,7 +68,3 @@ def giveDataCSV(coordinates: (float, float), outputPath: str):
         print(f"Failed to parse JSON response: {e}")
     except Exception as e:
         print(f"Unexpected error: {e}")
-
-
-tuple1, tuple2, tuple3, tuple4 = (41.5896,93.6164), (41.5896,93.6164), (41.5896,93.6164), (41.5896,93.6164)
-giveDataCSV(tuple1, tuple2, tuple3, tuple4, "/Users/max/PycharmProjects/farm-game-nasa-hackathon-2025")
