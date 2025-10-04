@@ -6,9 +6,8 @@ from datetime import datetime, timedelta
 from utils import returnMidPoint, relativeHumidity
 
 # give 4 coordinates and output path
-def giveDataCSV(tuple1: (float, float), tuple2: (float, float), tuple3: (float, float), tuple4: (float, float),
-                outputPath: str):
-    lat, lon = returnMidPoint(tuple1, tuple2, tuple3, tuple4)[0], returnMidPoint(tuple1, tuple2, tuple3, tuple4)[1]
+def giveDataCSV(coordinates: (float, float), outputPath: str):
+    lat, lon = coordinates[0], coordinates[1]
     end_date = datetime(2025, 9, 28)
     start_date = end_date - timedelta(days=3650/2)      # 7 days ago
 
