@@ -3,7 +3,7 @@ import requests
 import csv
 from datetime import datetime, timedelta
 
-from utils import returnMidPoint, relativeHumidity
+from utils import relativeHumidity
 
 # give 4 coordinates and output path
 def giveDataCSV(coordinates: (float, float), outputPath: str):
