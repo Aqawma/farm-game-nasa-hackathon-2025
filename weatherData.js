@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import fetch from "node-fetch";
 
-// === Relative humidity function ===
+
 function relativeHumidity(tempC, dewC) {
   const rh =
     100 *
@@ -13,11 +13,11 @@ function relativeHumidity(tempC, dewC) {
   return Math.round(rh * 10) / 10;
 }
 
-// === Main function ===
+
 async function giveDataCSV(coordinates, outputPath) {
   const [lat, lon] = coordinates;
 
-  // 5-year span like your 3650/2 days
+
   const endDate = new Date("2025-09-28");
   const startDate = new Date(endDate.getTime() - (3650 / 2) * 24 * 60 * 60 * 1000);
 
@@ -52,7 +52,7 @@ async function giveDataCSV(coordinates, outputPath) {
 
     for (const date of allDates) {
       const month = date.slice(4, 6);
-      if (!["05", "06", "07", "08"].includes(month)) continue; // Only summer months
+      if (!["05", "06", "07", "08"].includes(month)) continue;
 
       const temp = parameters.T2M[date];
       const dew = parameters.T2MDEW[date];
@@ -72,6 +72,3 @@ async function giveDataCSV(coordinates, outputPath) {
     console.error("Error:", err.message);
   }
 }
-
-// === Example usage ===
-giveDataCSV([21.0285, 105.8542], "./");
