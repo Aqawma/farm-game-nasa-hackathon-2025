@@ -1,0 +1,171 @@
+/* ========== Theme tokens ========== */
+:root{
+  --bg: #f7f7fb;
+  --surface: #ffffff;
+  --text: #0f172a;
+  --muted: #6b7280;
+  --border: #e6e8ef;
+  --brand: #111827;
+  --accent: #e11d48;
+  --shadow: 0 10px 30px rgba(0,0,0,.12);
+  --radius: 14px;
+  --ring: 0 0 0 3px rgba(225,29,72,.18);
+}
+:root.dark{
+  --bg: #0b1220;
+  --surface: #0f172a;
+  --text: #e5e7eb;
+  --muted: #9ca3af;
+  --border: #1f2937;
+  --brand: #e5e7eb;
+  --accent: #fb7185;
+  --shadow: 0 10px 30px rgba(0,0,0,.5);
+}
+
+/* ========== Base ========== */
+*{box-sizing:border-box}
+html, body, .app { height: 100%; margin: 0; }
+body{
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+/* Layout */
+.app{
+  display:grid;
+  grid-template-columns: 320px 1fr;
+  grid-template-rows: 100%;
+}
+
+/* Sidebar */
+.sidebar{
+  position: relative;
+  display:flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  overflow: hidden;
+  transition: width .25s ease, transform .25s ease;
+}
+.sidebar.is-collapsed{ transform: translateX(-100%); }
+.sidebar__header{
+  display:flex; align-items:center; gap:8px;
+  padding: 14px 12px;
+  border-bottom:1px solid var(--border);
+}
+.brand{ margin:0; font-size:18px; font-weight:900; letter-spacing:.2px; color:var(--brand); }
+.brand span{ color: var(--accent); }
+
+.iconBtn{
+  appearance:none; border:1px solid var(--border); background:transparent; color:var(--text);
+  width:34px; height:34px; border-radius:10px; display:grid; place-items:center; cursor:pointer;
+}
+.iconBtn.ghost{ border-color:transparent; }
+.iconBtn:focus-visible{ outline:none; box-shadow: var(--ring); }
+
+.tabs{ display:grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap:6px; padding:10px; border-bottom:1px solid var(--border); }
+.tab{
+  appearance:none; border:1px solid var(--border); background:var(--surface); color:var(--text);
+  padding:8px 10px; border-radius:10px; font-weight:700; cursor:pointer;
+}
+.tab.is-active{ border-color: transparent; background: var(--bg); }
+
+.tabPanel{ display:none; padding:12px; overflow:auto; height: calc(100% - 104px); }
+.tabPanel.is-active{ display:block; }
+
+.panelCard{
+  background: var(--bg); border:1px solid var(--border); border-radius: var(--radius);
+  padding: 12px; box-shadow: var(--shadow);
+}
+.panelCard h3{ margin:4px 0 10px; font-size:15px; }
+.kv{ margin:0; display:grid; grid-template-columns:1fr; gap:6px; }
+.kv > div{ display:grid; grid-template-columns:1fr auto; gap:10px; padding:6px 0; border-bottom:1px dashed var(--border); }
+.kv > div:last-child{ border-bottom:0; }
+.kv dt{ margin:0; color: var(--muted); font-weight:600; }
+.kv dd{ margin:0; color: var(--text); font-weight:800; }
+
+.rationale summary{ cursor:pointer; font-weight:700; }
+.rationale p{ margin:.5rem 0 0; white-space: pre-wrap; }
+
+.toggleRow{ display:flex; align-items:center; gap:12px; padding:8px 0; border-bottom:1px dashed var(--border); }
+.toggleRow:last-child{ border-bottom:0; }
+.toggleRow .label{ font-weight:700 }
+.muted{ color: var(--muted); }
+
+.switch { position: relative; display: inline-block; width: 42px; height: 24px; }
+.switch input{ display:none; }
+.slider{
+  position:absolute; cursor:pointer; inset:0; background:#cbd5e1; border-radius:999px; transition:.2s;
+}
+.slider:before{
+  content:""; position:absolute; left:3px; top:3px; width:18px; height:18px; background:#fff; border-radius:50%; transition:.2s;
+}
+.switch input:checked + .slider{ background:#22c55e; }
+.switch input:checked + .slider:before{ transform: translateX(18px); }
+
+/* Sidebar footer */
+.sidebarFoot{ padding: 10px 12px; color: var(--muted); }
+
+/* Main column */
+.main{ position:relative; }
+.topbar{
+  position:absolute; top:12px; left:12px; right:12px; z-index:1000;
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  background: rgba(255,255,255,.9); backdrop-filter: blur(8px);
+  border:1px solid var(--border); border-radius: var(--radius);
+  padding: 10px 12px; box-shadow: var(--shadow); color: var(--text);
+}
+:root.dark .topbar{ background: rgba(15,23,42,.85); }
+.left{ display:flex; align-items:center; gap:10px; }
+.right{ display:flex; align-items:center; gap:12px; }
+.divider{ width:1px; align-self:stretch; background: var(--border); }
+.status{ white-space: nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 42vw; }
+
+.btns { display:flex; gap:8px; flex-wrap:wrap; }
+.btn{
+  appearance:none; border:1px solid var(--border); padding:9px 12px; border-radius: 10px;
+  font-weight: 800; letter-spacing: .1px; background: var(--bg); color: var(--text);
+  cursor:pointer; transition: transform .12s ease, filter .12s ease, opacity .12s ease;
+}
+.btn.primary{ background: var(--brand); color: #fff; border-color: var(--brand); }
+.btn:hover{ transform: translateY(-1px); filter: brightness(1.02); }
+.btn[disabled]{ opacity: .5; cursor: not-allowed; transform: none; }
+
+/* Theme toggle */
+.themeToggle{ display:inline-flex; align-items:center; gap:6px; border:1px solid var(--border); padding:4px 8px; border-radius:999px; }
+.themeToggle input{ display:none; }
+.themeToggle .sun, .themeToggle .moon{ font-size:14px; line-height:1; }
+:root.dark .themeToggle{ background: transparent; }
+
+/* Map */
+#map{ position:absolute; inset:0; z-index:0; background: #eaeaea; }
+.coords{
+  position:absolute; right:12px; bottom:12px; z-index:1000;
+  background: rgba(0,0,0,.65); color:#fff; padding:6px 8px; border-radius:8px; font: 12px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* Tile error banner */
+.mapError{
+  position: absolute; top: 56px; left: 50%; transform: translateX(-50%); z-index: 20000;
+  background: #fecaca; color: #7f1d1d; padding: 8px 12px; border: 1px solid #ef4444;
+  border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; box-shadow: var(--shadow);
+}
+
+/* Leaflet popup theme */
+.leaflet-popup-content-wrapper{ background:#0f172a; color:#fff; border:1px solid var(--accent); border-radius:10px; }
+.leaflet-popup-tip{ background:#0f172a; border:1px solid var(--accent); }
+
+/* Make static rasters with black background blend with the basemap */
+.leaflet-image-layer.blend-screen { mix-blend-mode: screen; }
+
+/* Responsiveness */
+@media (max-width: 960px){
+  .app{ grid-template-columns: 0 1fr; }
+  .sidebar{ position:absolute; width: 82vw; max-width: 360px; height:100%; z-index: 1200; box-shadow: var(--shadow); }
+  .sidebar.is-collapsed{ transform: translateX(-105%); }
+  .status{ max-width: 36vw; }
+}
+@media (max-width: 640px){
+  .status{ display:none; }
+}

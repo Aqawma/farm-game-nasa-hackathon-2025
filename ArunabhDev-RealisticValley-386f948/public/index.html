@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8" />
+  <title>AgroScope – NASA POWER polygon analyzer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+  <!-- Minimal theming -->
+  <style>
+    :root{
+      --bg:#f7f7fb; --surface:#ffffff; --text:#0f172a; --muted:#6b7280; --border:#e6e8ef;
+      --brand:#111827; --accent:#e11d48; --radius:14px; --shadow:0 10px 30px rgba(0,0,0,.12);
+
+      /* High-contrast button colors */
+      --btn-bg:#2563eb; --btn-bg-hover:#1d4ed8; --btn-text:#ffffff;
+      --btn-ghost-bg:#0ea5e9; --btn-ghost-hover:#0284c7;
+      --btn-cta-bg:#16a34a; --btn-cta-hover:#15803d;
+    }
+    :root.dark{
+      --bg:#0b1220; --surface:#0f172a; --text:#e5e7eb; --muted:#9ca3af; --border:#1f2937; --brand:#e5e7eb; --accent:#fb7185; --shadow:0 10px 30px rgba(0,0,0,.5);
+      --btn-bg:#60a5fa; --btn-bg-hover:#3b82f6; --btn-text:#0b1220;
+      --btn-ghost-bg:#67e8f9; --btn-ghost-hover:#22d3ee;
+      --btn-cta-bg:#34d399; --btn-cta-hover:#10b981;
+    }
+
+    *{box-sizing:border-box}
+    html, body, .app { height:100%; margin:0; }
+    body{ background:var(--bg); color:var(--text); font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; }
+    .app{ display:grid; grid-template-columns:320px 1fr; }
+
+    /* Sidebar */
+    .sidebar{ display:flex; flex-direction:column; background:var(--surface); border-right:1px solid var(--border); }
+    .sidebar__header{ display:flex; align-items:center; gap:8px; padding:12px; border-bottom:1px solid var(--border); }
+    .brand{ margin:0; font-size:18px; font-weight:900; letter-spacing:.2px; color:var(--brand); }
+    .iconBtn{ appearance:none; border:1px solid var(--border); background:transparent; color:var(--text); width:34px; height:34px; border-radius:10px; cursor:pointer; }
+
+    .tabs{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; padding:10px; border-bottom:1px solid var(--border); }
+    .tab{ appearance:none; border:1px solid var(--border); background:var(--surface); color:var(--text); padding:8px 10px; border-radius:10px; font-weight:700; cursor:pointer; }
+    .tab.is-active{ background:var(--bg); border-color:transparent; }
+    .tabPanel{ display:none; padding:12px; overflow:auto; height: calc(100% - 104px); }
+    .tabPanel.is-active{ display:block; }
+
+    .panelCard{ background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); padding:12px; box-shadow:var(--shadow); }
+    .kv{ display:grid; grid-template-columns:1fr; gap:6px; margin:0; }
+    .kv > div{ display:grid; grid-template-columns:1fr auto; gap:10px; padding:6px 0; border-bottom:1px dashed var(--border); }
+    .kv > div:last-child{ border-bottom:0; }
+    .kv dt{ margin:0; color:var(--muted); font-weight:600; }
+    .kv dd{ margin:0; color:var(--text); font-weight:800; }
+
+    .btn{
+      appearance:none; border:1px solid transparent; padding:10px 14px; border-radius:10px;
+      font-weight:800; letter-spacing:.1px; cursor:pointer; transition:filter .12s ease, transform .12s ease, background .12s ease;
+      color:var(--btn-text); background:var(--btn-bg);
+    }
+    .btn:hover{ filter:brightness(1.02); transform:translateY(-1px); background:var(--btn-bg-hover); }
+    .btn.primary{ background:var(--btn-bg); }
+    .btn.secondary{ background:var(--btn-ghost-bg); }
+    .btn.secondary:hover{ background:var(--btn-ghost-hover); }
+    .btn.cta{ background:var(--btn-cta-bg); }
+    .btn.cta:hover{ background:var(--btn-cta-hover); }
+    .btn[disabled]{ opacity:.6; cursor:not-allowed; transform:none; }
+
+    .themeToggle{ display:inline-flex; align-items:center; gap:6px; border:1px solid var(--border); padding:4px 8px; border-radius:999px; }
+    .themeToggle input{ display:none; }
+
+    /* Main + map */
+    .main{ position:relative; }
+    .topbar{
+      position:absolute; top:12px; left:12px; right:12px; z-index:1000;
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      background:rgba(255,255,255,.92); border:1px solid var(--border); border-radius:var(--radius); padding:10px 12px; box-shadow:var(--shadow);
+    }
+    :root.dark .topbar{ background:rgba(15,23,42,.88); }
+    #map{ position:absolute; inset:0; background:#eaeaea; }
+    .coords{ position:absolute; right:12px; bottom:12px; z-index:1000; background: rgba(0,0,0,.65); color:#fff; padding:6px 8px; border-radius:8px; font: 12px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace; }
+    .mapError{ position:absolute; top:56px; left:50%; transform:translateX(-50%); background:#fecaca; color:#7f1d1d; padding:8px 12px; border:1px solid #ef4444; border-bottom-left-radius:8px; border-bottom-right-radius:8px; }
+    .status{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:42vw; }
+
+    /* Intro Modal */
+    .modal-backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; place-items:center; z-index:2000; }
+    .modal{ width:min(680px, 92vw); background:var(--surface); color:var(--text); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); padding:18px; }
+    .modal h2{ margin:0 0 6px 0; }
+    .modal p{ margin:8px 0; color:var(--muted); }
+    .modal .row{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:12px; }
+    .modal .left{ display:flex; align-items:center; gap:8px; color:var(--muted); }
+    .modal .kbd{ font:12px/1 ui-monospace,SFMono-Regular,Menlo,monospace; padding:2px 6px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--text); }
+    .modal .actions{ display:flex; gap:8px; }
+    .modal .checkbox{ display:flex; align-items:center; gap:6px; font-size:13px; color:var(--muted); }
+    .modal-backdrop.show{ display:grid; }
+
+    /* POWER table */
+    table.power{ width:100%; border-collapse:collapse; font-size:13px; }
+    table.power th, table.power td{ border-bottom:1px dashed var(--border); padding:6px 8px; text-align:right; }
+    table.power th:first-child, table.power td:first-child{ text-align:left; }
+    table.power thead th{ position:sticky; top:0; background:var(--surface); z-index:1; }
+    .muted{ color:var(--muted); }
+    .mono{ font: 12px/1.3 ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+    @media (max-width: 960px){
+      .app{ grid-template-columns:0 1fr; }
+      .sidebar{ position:absolute; width:82vw; max-width:360px; height:100%; z-index:1200; }
+      .status{ max-width:36vw; }
+    }
+    @media (max-width: 640px){ .status{ display:none; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar" aria-label="Sidebar">
+      <div class="sidebar__header">
+        <button id="collapseBtn" class="iconBtn" aria-label="Collapse sidebar" title="Collapse ( [ )">⟨</button>
+        <h1 class="brand">Agro<span style="color:var(--accent)">Scope</span></h1>
+      </div>
+
+      <nav class="tabs" role="tablist" aria-label="Sidebar tabs">
+        <button class="tab is-active" role="tab" aria-selected="true" data-tab="results">Results</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="power">POWER Data</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="help">Help</button>
+      </nav>
+
+      <!-- Results -->
+      <section id="tab-results" class="tabPanel is-active" role="tabpanel">
+        <div class="panelCard">
+          <h3>Analysis Result</h3>
+
+          <dl class="kv">
+            <div><dt>Country</dt><dd id="resCountry">—</dd></div>
+            <div><dt>Crop (AI)</dt><dd id="resCrop">—</dd></div>
+            <div><dt>Regional popular crop</dt><dd id="resRegional">—</dd></div>
+            <div><dt>Temperature (°C)</dt><dd id="resTemp">—</dd></div>
+            <div><dt>Humidity (%)</dt><dd id="resHum">—</dd></div>
+            <div><dt>Solar (MJ/m²/day)</dt><dd id="resSolar">—</dd></div>
+            <div><dt>Precip (mm/day)</dt><dd id="resPrecip">—</dd></div>
+            <div><dt>Area</dt><dd id="resArea">—</dd></div>
+          </dl>
+
+          <details class="rationale" style="margin-top:8px">
+            <summary style="cursor:pointer; font-weight:700">Rationale</summary>
+            <p id="resRationale" style="white-space:pre-wrap">—</p>
+          </details>
+
+          <!-- Play Game BELOW the results -->
+          <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+            <a
+              id="gameLink"
+              class="btn cta"
+              href="https://jonnfdfdfdf.itch.io/team-kappa-farming-simulator-nasa-challenge-2025"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Open the game in a new tab"
+            >🎮 Play Game</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- POWER Data (new tab) -->
+      <section id="tab-power" class="tabPanel" role="tabpanel" aria-live="polite">
+        <div class="panelCard">
+          <h3>NASA POWER – Last 30 Days</h3>
+          <div id="powerMeta" class="muted mono" style="margin:6px 0 8px">Select a polygon to load data…</div>
+          <div id="powerTableWrap" style="max-height:48vh; overflow:auto; border:1px solid var(--border); border-radius:10px;">
+            <table class="power" id="powerTable">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Temp (°C)</th>
+                  <th>RH (%)</th>
+                  <th>Solar (MJ/m²/day)</th>
+                  <th>Precip (mm/day)</th>
+                </tr>
+              </thead>
+              <tbody id="powerTbody">
+                <tr><td class="muted" colspan="5">—</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Help -->
+      <section id="tab-help" class="tabPanel" role="tabpanel">
+        <div class="panelCard">
+          <h3>How it works</h3>
+          <ol>
+            <li>Click <strong>Start</strong> and place <strong>4 points</strong> on the map.</li>
+            <li>We compute area & centroid and call <code>/analyze-polygon</code>.</li>
+            <li>We also fetch last-30-day NASA POWER point time series for your centroid.</li>
+          </ol>
+          <div style="display:grid; grid-template-columns:auto auto; gap:8px; margin-top:8px">
+            <div><kbd>S</kbd> Start</div>
+            <div><kbd>U</kbd> Undo</div>
+            <div><kbd>R</kbd> Reset</div>
+            <div><kbd>[</kbd> Collapse sidebar</div>
+          </div>
+        </div>
+        <footer style="padding:10px 12px; color:var(--muted)">
+          Data © OpenStreetMap contributors. NASA POWER used per their terms; NASA does not endorse this app.
+        </footer>
+      </section>
+    </aside>
+
+    <!-- Main -->
+    <div class="main">
+      <header class="topbar" role="region" aria-label="Top controls">
+        <div class="left" style="display:flex; align-items:center; gap:10px;">
+          <button id="expandBtn" class="iconBtn" aria-label="Expand sidebar">⟩</button>
+          <div class="divider" aria-hidden="true" style="width:1px; align-self:stretch; background:var(--border)"></div>
+
+          <!-- Controls in Topbar -->
+          <div class="btns" style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button id="startBtn" class="btn primary" style="min-width:160px">Start 4-point polygon</button>
+            <button id="undoBtn" class="btn secondary" disabled>Undo</button>
+            <button id="resetBtn" class="btn secondary" disabled>Reset</button>
+          </div>
+
+          <div id="status" class="status" role="status" style="margin-left:10px;">Click Start, then pick 4 points</div>
+        </div>
+        <div class="right" style="display:flex; align-items:center; gap:10px;">
+          <label class="themeToggle" title="Toggle dark mode">
+            <input id="themeSwitch" type="checkbox" aria-label="Dark mode" />
+            <span class="sun">☼</span><span class="moon">◐</span>
+          </label>
+        </div>
+      </header>
+
+      <div id="map" aria-label="Map"></div>
+      <div id="mapError" class="mapError" hidden>⚠️ Map tiles failed to load.</div>
+      <div id="coords" class="coords">—</div>
+    </div>
+  </div>
+
+  <!-- Intro Modal -->
+  <div id="introBackdrop" class="modal-backdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="introTitle" aria-describedby="introDesc">
+      <h2 id="introTitle">Welcome to AgroScope</h2>
+      <p id="introDesc">Draw a 4-point polygon anywhere on the map to analyze recent NASA POWER conditions and get an AI crop suggestion.</p>
+      <div class="row">
+        <div class="left">
+          <span class="kbd">S</span> Start
+          <span class="kbd">U</span> Undo
+          <span class="kbd">R</span> Reset
+        </div>
+        <div class="actions">
+          <label class="checkbox">
+            <input id="introDontShow" type="checkbox" />
+            <span>Don’t show again</span>
+          </label>
+          <button id="introClose" class="btn primary">Start Mapping</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaflet + (optional) Turf -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/@turf/turf@6.5.0/turf.min.js"></script>
+
+  <!-- App -->
+  <script src="./app.js"></script>
+</body>
+</html>
